@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Route, Router, Routes, useLocation } from 'react-router-dom';
 import './App.css';
 import { Document, Page, Text, View, Image, PDFViewer } from '@react-pdf/renderer';
+import html2canvas from 'html2canvas';
 
 const MyDocument = () => {
   // const { search } = useLocation();
@@ -46,8 +47,35 @@ const MyDocument = () => {
   );
 };
 
+const MyDocumentCanvas = () => {
+  const elementRef = useRef(null);
+
+  const handleDownload = () => {
+    html2canvas(elementRef.current).then((canvas) => {
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download   
+ = 'my-image.png';
+      link.click();
+    });
+  };
+
+  return (
+    <div>
+      <button onClick={handleDownload}>Download Image</button>
+      <div ref={elementRef}>
+        {/* Your HTML content to be converted to an image */}
+        <h1>Hello, World!</h1>
+        <p>This is a sample text.</p>
+      </div>
+    </div>
+  );
+};
+
 function App() {
   return <MyDocument />
+  // return <MyDocumentCanvas />
   // return (
   //   <Router>
   //     <Routes>
