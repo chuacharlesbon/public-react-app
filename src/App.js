@@ -22,28 +22,76 @@ const MyDocument = () => {
   //   }
   // }, [queryParams]);
 
-  const params = new URLSearchParams(window.location.search);
-  const queryParamsObject = Object.fromEntries(params.entries());
-  console.log(queryParamsObject);
+  const [pdfData, setPdfData] = useState();
+  const [isDeleted, setIsDeleted] = useState(false);
+
+  const deleteTempPdf = async () => {
+    const params = new URLSearchParams(window.location.search);
+    const queryParamsObject = Object.fromEntries(params.entries());
+    console.log(queryParamsObject);
+
+    await fetch(`https://cmt-server-public-api.vercel.app/api/v1/generate-pdf-remove?id=${queryParamsObject.id}`)
+      .then(response => response.json())
+      .then(data => {
+        console.error('Data:', data);
+        setIsDeleted(true);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  }
+
+  const getPdfData = async () => {
+    const params = new URLSearchParams(window.location.search);
+    const queryParamsObject = Object.fromEntries(params.entries());
+    console.log(queryParamsObject);
+
+    await fetch(`https://cmt-server-public-api.vercel.app/api/v1/generate-pdf?id=${queryParamsObject.id}`)
+      .then(response => response.json())
+      .then(data => {
+        setPdfData(data.data);
+        // deleteTempPdf();
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        setIsDeleted(true);
+      });
+  }
+
+  useEffect(() => {
+    getPdfData();
+  }, []);
 
   return (
-    <div className='w-100 h-100'>
-      <PDFViewer width={"100%"} height={"800"} showToolbar={true}>
-        <Document>
-          <Page size="LEGAL">
-            <View style={{ margin: 50 }}>
-              <Text>Property Information</Text>
-              <Text>{queryParamsObject.propertyName}</Text>
-              <Image
-                src={"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYd7JsARcFhCLY8YvWYgC11qxhmpzRikM12g&s"}
-                style={{ width: 100, height: 100 }}
-                fixed={true}
-              />
-            </View>
-          </Page>
-        </Document>
-      </PDFViewer>
-    </div>
+    <>
+      {
+        pdfData
+          ? <div className='w-100 h-100'>
+            <PDFViewer width={"100%"} height={"800"} showToolbar={true}>
+              <Document>
+                <Page size="LEGAL">
+                  <View style={{ margin: 50 }}>
+                    <Text style={{ textAlign: 'center' }}>Property Information</Text>
+                    <Text>{pdfData.propertyName}</Text>
+                    <Image
+                      src={"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYd7JsARcFhCLY8YvWYgC11qxhmpzRikM12g&s"}
+                      style={{ width: 100, height: 100 }}
+                      fixed={true}
+                    />
+                  </View>
+                </Page>
+              </Document>
+            </PDFViewer>
+          </div>
+          : <div className='w-100 p-5'>
+            {
+              isDeleted
+                ? <p className='text-center text-danger fs-5'>Oops! PDF link has expired.</p>
+                : <p className='text-center text-success fs-5'>Loading PDF data. Please wait.</p>
+            }
+          </div>
+      }
+    </>
   );
 };
 
@@ -55,8 +103,8 @@ const MyDocumentCanvas = () => {
       const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = dataUrl;
-      link.download   
- = 'my-image.png';
+      link.download
+        = 'my-image.png';
       link.click();
     });
   };
