@@ -50,7 +50,7 @@ const MyDocument = () => {
       .then(response => response.json())
       .then(data => {
         setPdfData(data.data);
-        // deleteTempPdf();
+        deleteTempPdf();
       })
       .catch(error => {
         console.error('Error:', error);
